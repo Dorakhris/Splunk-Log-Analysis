@@ -9,7 +9,7 @@ The analysis uncovered a targeted brute-force attack, systematic user enumeratio
 
 This project highlights my hands-on skills in SIEM implementation, log analysis, threat detection, and security automation`
 
-## 📈 The Investigation Workflow
+## The Investigation Workflow
 
 ### 1. Environment Setup & Data Ingestion
 
