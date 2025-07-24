@@ -1,29 +1,33 @@
-# Splunk-Based Threat Analysis of OpenSSH Logs
+# Splunk SOC Simulation: Investigating an OpenSSH Brute-Force Attack
 
+## Executive Summary
 
-## Overview
+This report details a comprehensive security investigation into OpenSSH server logs using Splunk Cloud. The analysis successfully identified and dissected a multi-stage attack, providing a clear demonstration of an end-to-end Security Operations Center (SOC) workflow.
 
-This project showcases a comprehensive security analysis of OpenSSH server logs using **Splunk Cloud**. The objective was to simulate a real-world Security Operations Center (SOC) investigation, moving from initial data ingestion to proactive threat detection, detailed analysis, and the creation of actionable security intelligence.
+The investigation uncovered a targeted brute-force campaign from a single malicious IP, systematic user enumeration, and a high-priority attempt to compromise the 'root' account. In response, I developed a suite of actionable intelligence tools, including a real-time monitoring dashboard and automated alerts, to transition the security posture from reactive to proactive.
 
-The analysis uncovered a targeted brute-force attack, systematic user enumeration, and identified several high-risk Indicators of Compromise (IOCs). The project culminates in the development of real-time monitoring dashboards and automated alerts, demonstrating a full-cycle security monitoring workflow.
+**This case study highlights my proficiency in transforming raw log data into a robust and repeatable security monitoring capability.**
 
-This project highlights my hands-on skills in SIEM implementation, log analysis, threat detection, and security automation`
+*   **Tools & Technologies:** Splunk Cloud, Splunk Search Processing Language (SPL), Linux (OpenSSH), Role-Based Access Control (RBAC).
 
-## The Investigation Workflow
+---
 
-### 1. Environment Setup & Data Ingestion
+## The Investigation & Analysis Process
 
-- **User Management:** Established a secure multi-user environment by creating role-based accounts (Admin, Power, User) for the SOC team, enforcing a "least privilege" principle.
-- **Data Onboarding:** Successfully ingested OpenSSH logs into Splunk Cloud. 
-- **Verification:** Confirmed successful ingestion and parsing with a baseline SPL query, ensuring all 2,000 events were indexed and ready for analysis.
+My approach followed a structured, three-phase process common in real-world security operations.
 
-### 2. Threat Hunting & Analysis
+### Phase 1: Environment Setup and Data Ingestion
+Before analysis could begin, a secure and reliable data pipeline was established.
 
-My analysis focused on identifying patterns of malicious behavior within the log data.
+*   **Secure Environment:** Configured a multi-user Splunk environment with Role-Based Access Control (Admin, Power, User roles) to enforce the principle of least privilege.
+*   **Data Onboarding:** Successfully ingested the OpenSSH log dataset into a dedicated Splunk Cloud index.
+*   **Ingestion Verification:** Confirmed that all 2,000 log events were correctly indexed and parsed using a baseline SPL query (`index="openssh"`), ensuring data integrity for the investigation.
 
-#### Finding 1: Targeted Brute-Force Attack
+### Phase 2: Threat Hunting and Key Findings
+With the data onboarded, I began the threat hunting process by querying for patterns of malicious activity.
 
-A high volume of **520 failed login attempts** was detected. I used SPL to investigate further:
+#### Finding 1: Detection of a Sustained Brute-Force Attack
+A query for failed login attempts immediately revealed a high volume of suspicious activity.
 
 ```splunk
 source="OpenSSH.csv" index="openssh" "Failed password"
@@ -31,74 +35,59 @@ source="OpenSSH.csv" index="openssh" "Failed password"
 | stats count by src_ip
 | sort -count
 ```
+*   **Result:** A total of **520 failed login attempts** were recorded. The IP address `183.62.140.253` was responsible for **286 (55%)** of these failures.
+*   **Implication:** This disproportionate volume indicates a determined, automated attack from a single source, not random login errors.
 
-- **Result:** The IP address `183.62.140.253` was responsible for **286 failed attempts**, indicating an automated attack.
-
-
-
-#### Finding 2: High-Value Target Compromise Attempt
-
-I narrowed the search to identify specific targets.
+#### Finding 2: Attempted Compromise of a High-Value Target
+I then investigated which user accounts were being targeted to understand the attacker's objective.
 
 ```splunk
 source="OpenSSH.csv" index="openssh" "Failed password" "root"
 ```
+*   **Result:** The **'root'** user was the target of **370 failed login attempts**.
+*   **Implication:** Targeting the 'root' user signifies a high-stakes attempt to gain complete, unrestricted control over the system, which would be a critical security breach.
 
-- **Result:** **370 attempts** specifically targeted the **'root'** user, highlighting a clear intent to gain privileged access.
-
-
-
-#### Finding 3: Systematic User Enumeration
-
-The logs also showed attempts against non-existent users, a classic enumeration tactic.
+#### Finding 3: Identification of Systematic User Enumeration
+Further analysis revealed attempts to log in with non-existent accounts, a common reconnaissance technique.
 
 ```splunk
 source="OpenSSH.csv" index="openssh" "Failed password" "invalid user"
 ```
-
-- **Result:** **135 failed attempts** were against invalid users, confirming that attackers were actively trying to discover valid account names.
-
-
-
-### 3. Operationalizing Intelligence: Dashboards & Alerts
-
-Identifying threats is only half the battle. A key outcome of this project was to build a sustainable monitoring solution.
-
-#### Security Dashboards
-
-I created a series of dashboards to provide the SOC team with at-a-glance visibility into SSH security posture. Key panels include:
-- Top IPs by Failed Logins
-- Top IPs by Authentication Failures
-- Real-time `Accepted Password` Events (to immediately spot potential breaches)
-- User Enumeration Attempts
-
-
-
-#### Proactive Alerts
-
-To enable rapid response, I configured several automated alerts that trigger on high-fidelity indicators of an attack.
-
-- **Authentication Failure Spike:** Triggers if the number of authentication failures exceeds a set threshold in a short time frame.
-- **Login from Suspicious IP:** Triggers on any activity from IPs with known bad reputations.
-- **Enumeration Detected:** Triggers when a single IP generates multiple "invalid user" errors.
-
-
+*   **Result:** A total of **135 failed attempts** were against invalid users.
+*   **Implication:** This confirms the attacker was not just targeting known accounts but was actively trying to discover valid usernames for future, more focused attacks.
 
 ---
 
-## Recommendations & Security Posture Improvements
+### Phase 3: Operationalizing Intelligence — From Findings to Defense
+Identifying threats is critical, but creating sustainable defenses is the ultimate goal. I translated my findings into a repeatable monitoring solution.
 
-Based on the investigation, I formulated several key recommendations to present to stakeholders:
+#### Comprehensive SOC Dashboard
+I designed and built a Splunk dashboard to provide the security team with at-a-glance, real-time visibility into the SSH environment.
 
-1.  **Immediate Action:** Block the top offending IP addresses at the perimeter firewall.
-2.  **Preventive Control:** Deploy `fail2ban` to automatically block IPs that exhibit brute-force behavior.
-3.  **Authentication Hardening:** Prioritize the transition from password-based authentication to more secure **key-based authentication** to mitigate the risk of password-guessing attacks.
-4.  **Continuous Monitoring:** Continue leveraging the newly created Splunk dashboards and alerts for proactive threat detection and response.
+**Key Dashboard Panels:**
+*   Top 10 IPs by Failed Logins
+*   Real-time Feed of Accepted Logins
+*   Count of User Enumeration Attempts over Time
+*   Authentication Failure Trends
+
+#### Proactive Alerting Strategy
+To enable rapid response, I configured automated alerts that trigger on high-confidence indicators of an attack, reducing detection time from hours to seconds.
+
+| Alert Name | Trigger Condition | Purpose |
+| :--- | :--- | :--- |
+| **Brute-Force Attempt Detected** | More than 20 failed logins from a single IP in 5 minutes. | Immediately notify the team of a concentrated password-guessing attack. |
+| **Suspicious IP Activity** | Any login (successful or failed) from a known malicious IP. | Leverage threat intelligence to stop known attackers at the door. |
+| **Potential User Enumeration** | More than 5 "invalid user" errors from a single IP in 10 minutes. | Detect attacker reconnaissance before a targeted attack begins. |
 
 ---
 
-## Conclusion
+## Strategic Recommendations & Business Impact
 
-This project demonstrates my capability to function as a proactive and detail-oriented SOC analyst. I successfully navigated the entire threat analysis lifecycle: from raw data to actionable intelligence, and finally to automated monitoring.
+Based on the investigation, I formulated the following recommendations to harden the security posture and mitigate business risk:
 
-This hands-on experience with Splunk, combined with a strong understanding of attacker techniques and defensive strategies, makes me a unique and valuable candidate for a Security Operations role.
+1.  **Immediate Containment:** Block the top offending IP address (`183.62.140.253`) at the network firewall to instantly stop the ongoing attack.
+2.  **Automated Defense:** Implement a tool like `fail2ban` on the server. This automates the blocking of brute-force IPs, reducing the manual workload on the SOC team and improving response time.
+3.  **Architectural Hardening:** Prioritize the migration from password-based authentication to **public key authentication**. This would eliminate the risk of password-guessing attacks entirely, representing a significant improvement in security.
+4.  **Continuous Monitoring:** Formally adopt the new Splunk dashboards and alerts as part of the standard daily operating procedure for the SOC team.
+
+By implementing these changes, the organization can significantly reduce its attack surface and enhance its ability to detect and respond to future threats.
