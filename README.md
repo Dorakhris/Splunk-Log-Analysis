@@ -58,7 +58,7 @@ source="OpenSSH.csv" index="openssh" "Failed password" "invalid user"
 
 ---
 
-### Phase 3: Operationalizing Intelligence — From Findings to Defense
+### Phase 3: Operational Intelligence 
 Identifying threats is critical, but creating sustainable defenses is the ultimate goal. I translated my findings into a repeatable monitoring solution.
 
 #### Comprehensive SOC Dashboard
