@@ -2,7 +2,7 @@
 #  Project Title
 SOC Analysis of an OpenSSH Brute-Force Campaign
 
----
+
 
 ##  Case Summary
 - **Objective:** My goal was to conduct a full-cycle security investigation on a set of OpenSSH server logs. I aimed to identify the nature of a suspected attack, pinpoint the adversary's TTPs, and operationalize my findings by building a real-time monitoring and alerting solution in Splunk.
@@ -10,7 +10,7 @@ SOC Analysis of an OpenSSH Brute-Force Campaign
 - **Tools Used:** Splunk Cloud, Splunk Processing Language (SPL).
 - **Outcome:** I successfully dissected a targeted brute-force attack originating from a single malicious IP. I then built a comprehensive SOC dashboard and a series of automated alerts to shift the security posture from reactive investigation to proactive defense.
 
----
+
 
 ##  Tools & Environment
 | Tool | Purpose |
@@ -20,12 +20,12 @@ SOC Analysis of an OpenSSH Brute-Force Campaign
 | **Role-Based Access Control** | Securing the Splunk environment itself with Admin, Power, and User roles. |
 | **OS/VM Used** | Linux Server (Data Source) / Windows 11 (Analysis Workstation) |
 
----
+
 
 ##  Case Background
 I was tasked with simulating a real-world Security Operations Center (SOC) scenario. I started with a raw log file (`OpenSSH.csv`) from a critical Linux server, with the initial intelligence suggesting anomalous login activity. My mission was to act as the primary security analyst: ingest this data into a clean Splunk environment and conduct a thorough investigation to determine if the server was under attack, understand the attacker's methods, and build a sustainable defense.
 
----
+
 
 ##  Methodology
 My investigation followed a structured, repeatable workflow, moving from initial setup to deep analysis and finally to operationalizing the intelligence.
@@ -36,7 +36,7 @@ My investigation followed a structured, repeatable workflow, moving from initial
 4.  **Indicator Correlation:** I correlated findings from different queries to build a complete narrative of the attack. For example, I linked the top attacking IP address to the specific user accounts it was targeting.
 5.  **Intelligence Operationalization:** I translated my analytical findings into a practical, forward-looking security solution by creating a SOC dashboard for real-time visibility and a set of high-fidelity alerts for immediate threat notification.
 
----
+
 
 ##  Findings & Evidence
 My threat hunt quickly uncovered a clear and systematic attack pattern. The attacker's actions were not random; they were deliberate and followed a logical progression.
@@ -52,7 +52,7 @@ My threat hunt quickly uncovered a clear and systematic attack pattern. The atta
 | **High-Value Account Targeting** | `Target Username: root` | The 'root' account was attacked **370 times**. This showed the attacker’s ultimate goal was to gain complete, privileged control of the system. |
 | **Reconnaissance (User Enum)** | `Log Message: "invalid user"` | I found **135 login attempts** against non-existent users from the same IP. This proved the attacker was actively trying to map out valid usernames. |
 
----
+
 
 ##  Logs
 Below is a sample of the SPL queries I used to uncover the attacker's actions. These queries formed the backbone of my investigation and were later used to power the dashboard panels and alerts.
@@ -70,10 +70,9 @@ source="OpenSSH.csv" index="openssh" "Failed password"
 source="OpenSSH.csv" index="openssh" "Failed password" "invalid user"
 ```
 
-*A placeholder for what the final SOC dashboard would look like:*
 
 
----
+
 
 ## Conclusion
 My investigation proved that the Linux server was the target of a sustained brute-force campaign from the IP address `183.62.140.253`. The attacker systematically attempted to enumerate valid user accounts before focusing their efforts on compromising the high-privilege 'root' account.
@@ -86,14 +85,14 @@ My investigation proved that the Linux server was the target of a sustained brut
 3.  **Architectural Hardening:** The highest priority should be disabling password authentication for SSH and migrating to **public key authentication**, which would completely mitigate this type of threat.
 4.  **Continuous Monitoring:** Adopt the Splunk dashboard and alerts I created as a standard operational tool for the SOC, ensuring ongoing visibility into SSH security.
 
----
+
 
 ##  Lessons Learned / Reflection
 This project was an excellent exercise in demonstrating the true power of a SIEM. The key takeaway for me was the flow from raw data to operational intelligence. Anyone can find a single bad IP in a log file, but the real value of a security analyst is in contextualizing that finding, understanding the *story* of the attack, and then building a robust, automated system to defend against it in the future.
 
 Technically, it reinforced how crucial SPL commands like `stats`, `rex`, and `sort` are for transforming thousands of noisy events into a single, clear picture of an attack. If I were to do this again, I would enrich the data further by integrating an IP reputation threat intelligence feed to automatically flag known malicious IPs upon ingestion.
 
----
+
 
 
 
