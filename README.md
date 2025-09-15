@@ -1,6 +1,5 @@
 
-#  Project Title
-SOC Analysis of an OpenSSH Brute-Force Campaign
+#  SOC Analysis of an OpenSSH Brute-Force Campaign
 
 
 
